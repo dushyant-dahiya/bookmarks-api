@@ -30,6 +30,73 @@ def test_created_bookmark_has_correct_id() -> None:
     assert created["id"] == 1
 
 
+def test_get_bookmark_success() -> None:
+    create_response = client.post(
+        "/bookmarks",
+        json={"url": "https://example.com", "title": "Example", "tags": [], "notes": ""},
+    )
+
+    created = create_response.json()
+    bookmark_id = created["id"]
+
+    get_response = client.get(
+        f"/bookmarks/{bookmark_id}",
+    )
+    assert get_response.status_code == 200
+    fetched = get_response.json()
+    assert fetched["id"] == bookmark_id
+    assert fetched["title"] == "Example"
+
+
+def test_get_bookmark_not_exist() -> None:
+    create_reponse = client.post(
+        "/bookmarks",
+        json={"url": "https://example.com", "title": "Example", "tags": [], "notes": ""},
+    )
+    assert create_reponse.status_code == 200
+    created = create_reponse.json()
+    assert created["id"] == 1
+
+    bookmark_id = 999
+    get_response = client.get(f"/bookmarks/{bookmark_id}")
+    assert get_response.status_code == 404
+
+
+def test_delete_bookmark_success() -> None:
+
+    create_response = client.post(
+        "/bookmarks",
+        json={"url": "https://example.com", "title": "Example", "tags": [], "notes": ""},
+    )
+
+    assert create_response.status_code == 200
+    created = create_response.json()
+    bookmark_id = created["id"]
+
+    delete_response = client.delete(f"/bookmarks/{bookmark_id}")
+    deleted = delete_response.json()
+
+    assert deleted["id"] == bookmark_id
+    assert deleted["title"] == "Example"
+
+    verify_response = client.get(f"/bookmarks/{bookmark_id}")
+    assert verify_response.status_code == 404
+
+
+def test_delete_bookmark_not_exist() -> None:
+    create_reponse = client.post(
+        "/bookmarks",
+        json={"url": "https://example.com", "title": "Example", "tags": [], "notes": ""},
+    )
+    assert create_reponse.status_code == 200
+    created = create_reponse.json()
+    assert created["id"] == 1
+
+    bookmark_id = 999
+    delete_response = client.delete(f"/bookmarks/{bookmark_id}")
+    assert delete_response.status_code == 404
+
+
 @pytest.fixture(autouse=True)
 def reset_database() -> None:
     operations.database_db.clear()

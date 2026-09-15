@@ -25,8 +25,8 @@ def get_bookmark(bookmark_id: int) -> Bookmark:
 
 
 @app.delete("/bookmarks/{bookmark_id}")
-def delete_bookmark(bookmard_id: int) -> Bookmark:
-    bookmark = operations.delete_bookmark(bookmard_id)
+def delete_bookmark(bookmark_id: int) -> Bookmark:
+    bookmark = operations.delete_bookmark(bookmark_id)
     if bookmark is None:
         raise HTTPException(status_code=404, detail="Bookmark not found to be deleted")
     return bookmark
