@@ -20,3 +20,11 @@ def list_bookmarks() -> list[Bookmark]:
     for bookmark in database_db.values():
         bookmarks.append(bookmark)
     return bookmarks
+
+
+def get_bookmark(bookmark_id: int) -> Bookmark | None:
+    bookmark = database_db.get(bookmark_id)
+    if bookmark is not None:
+        return bookmark
+    else:
+        return None

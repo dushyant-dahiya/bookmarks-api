@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from bookmarks_api import operations
 from bookmarks_api.models import Bookmark, BookmarkCreate
@@ -14,3 +14,11 @@ def list_bookmarks() -> list[Bookmark]:
 @app.post("/bookmarks")
 def create_bookmark(bookmark: BookmarkCreate) -> Bookmark:
     return operations.create_bookmark(bookmark)
+
+
+@app.get("/bookmarks/{bookmark_id}")
+def get_bookmark(bookmark_id: int) -> Bookmark:
+    bookmark = operations.get_bookmark(bookmark_id)
+    if bookmark is None:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    return bookmark
