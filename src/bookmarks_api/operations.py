@@ -28,3 +28,12 @@ def get_bookmark(bookmark_id: int) -> Bookmark | None:
         return bookmark
     else:
         return None
+
+
+def delete_bookmark(bookmark_id: int) -> Bookmark | None:
+    bookmark = database_db.get(bookmark_id)
+    if bookmark is None:
+        return None
+    else:
+        database_db.pop(bookmark_id)
+        return bookmark
