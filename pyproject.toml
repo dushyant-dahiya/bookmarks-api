@@ -7,7 +7,9 @@ authors = [
     { name = "Dushyant Dahiya", email = "dushyant.dahiya88@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi>=0.141.1",
+]
 
 [project.scripts]
 bookmarks-api = "bookmarks_api:main"
@@ -22,6 +24,7 @@ dev = [
     "pre-commit>=4.6.2",
     "pytest>=9.1.1",
     "ruff>=0.16.7",
+    "uvicorn[standard]>=0.52.4",
 ]
 
 [tool.ruff]
