@@ -1,9 +1,13 @@
 from fastapi import FastAPI, HTTPException
 
 from bookmarks_api import operations
+from bookmarks_api.database import engine
+from bookmarks_api.db_models import Base
 from bookmarks_api.models import Bookmark, BookmarkCreate
 
 app = FastAPI()
+
+Base.metadata.create_all(engine)
 
 
 @app.get("/bookmarks")
