@@ -1,39 +1,50 @@
+from bookmarks_api.database import SessionLocal
+from bookmarks_api.db_models import BookmarkORM
 from bookmarks_api.models import Bookmark, BookmarkCreate
 
 database_db: dict[int, Bookmark] = {}
 next_id = 1
 
 
-def create_bookmark(bookmark: BookmarkCreate) -> Bookmark:
-    global next_id
-    new_bookmark = Bookmark(
-        id=next_id, url=bookmark.url, title=bookmark.title, tags=bookmark.tags, notes=bookmark.notes
+def _to_bookmark(orm_obj: BookmarkORM) -> Bookmark:
+    return Bookmark(
+        id=orm_obj.id, url=orm_obj.url, title=orm_obj.title, tags=orm_obj.tags, notes=orm_obj.notes
     )
-    database_db[next_id] = new_bookmark
-    next_id += 1
 
-    return new_bookmark
+
+def create_bookmark(bookmark: BookmarkCreate) -> Bookmark:
+
+    session = SessionLocal()
+    new_bookmark_orm = BookmarkORM(
+        url=bookmark.url,
+        title=bookmark.title,
+        tags=bookmark.tags,
+        notes=bookmark.notes,
+    )
+    session.add(new_bookmark_orm)
+    session.commit()
+    return _to_bookmark(new_bookmark_orm)
 
 
 def list_bookmarks() -> list[Bookmark]:
-    bookmarks = []
-    for bookmark in database_db.values():
-        bookmarks.append(bookmark)
-    return bookmarks
+    session = SessionLocal()
+    all_bookmarks = session.query(BookmarkORM).all()
+    return [_to_bookmark(bookmark) for bookmark in all_bookmarks]
 
 
 def get_bookmark(bookmark_id: int) -> Bookmark | None:
-    bookmark = database_db.get(bookmark_id)
-    if bookmark is not None:
-        return bookmark
-    else:
+    session = SessionLocal()
+    fetched_bookmark = session.query(BookmarkORM).filter(BookmarkORM.id == bookmark_id).first()
+    if fetched_bookmark is None:
         return None
+    return _to_bookmark(fetched_bookmark)
 
 
 def delete_bookmark(bookmark_id: int) -> Bookmark | None:
-    bookmark = database_db.get(bookmark_id)
-    if bookmark is None:
+    session = SessionLocal()
+    fetched_bookmark = session.query(BookmarkORM).filter(BookmarkORM.id == bookmark_id).first()
+    if fetched_bookmark is None:
         return None
-    else:
-        database_db.pop(bookmark_id)
-        return bookmark
+    session.delete(fetched_bookmark)
+    session.commit()
+    return _to_bookmark(fetched_bookmark)
