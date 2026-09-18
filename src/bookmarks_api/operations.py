@@ -1,4 +1,5 @@
-from bookmarks_api.database import SessionLocal
+from sqlalchemy.orm import Session
+
 from bookmarks_api.db_models import BookmarkORM
 from bookmarks_api.models import Bookmark, BookmarkCreate
 
@@ -12,39 +13,35 @@ def _to_bookmark(orm_obj: BookmarkORM) -> Bookmark:
     )
 
 
-def create_bookmark(bookmark: BookmarkCreate) -> Bookmark:
+def create_bookmark(bookmark: BookmarkCreate, db: Session) -> Bookmark:
 
-    session = SessionLocal()
     new_bookmark_orm = BookmarkORM(
         url=bookmark.url,
         title=bookmark.title,
         tags=bookmark.tags,
         notes=bookmark.notes,
     )
-    session.add(new_bookmark_orm)
-    session.commit()
+    db.add(new_bookmark_orm)
+    db.commit()
     return _to_bookmark(new_bookmark_orm)
 
 
-def list_bookmarks() -> list[Bookmark]:
-    session = SessionLocal()
-    all_bookmarks = session.query(BookmarkORM).all()
+def list_bookmarks(db: Session) -> list[Bookmark]:
+    all_bookmarks = db.query(BookmarkORM).all()
     return [_to_bookmark(bookmark) for bookmark in all_bookmarks]
 
 
-def get_bookmark(bookmark_id: int) -> Bookmark | None:
-    session = SessionLocal()
-    fetched_bookmark = session.query(BookmarkORM).filter(BookmarkORM.id == bookmark_id).first()
+def get_bookmark(bookmark_id: int, db: Session) -> Bookmark | None:
+    fetched_bookmark = db.query(BookmarkORM).filter(BookmarkORM.id == bookmark_id).first()
     if fetched_bookmark is None:
         return None
     return _to_bookmark(fetched_bookmark)
 
 
-def delete_bookmark(bookmark_id: int) -> Bookmark | None:
-    session = SessionLocal()
-    fetched_bookmark = session.query(BookmarkORM).filter(BookmarkORM.id == bookmark_id).first()
+def delete_bookmark(bookmark_id: int, db: Session) -> Bookmark | None:
+    fetched_bookmark = db.query(BookmarkORM).filter(BookmarkORM.id == bookmark_id).first()
     if fetched_bookmark is None:
         return None
-    session.delete(fetched_bookmark)
-    session.commit()
+    db.delete(fetched_bookmark)
+    db.commit()
     return _to_bookmark(fetched_bookmark)
