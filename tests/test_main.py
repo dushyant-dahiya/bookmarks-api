@@ -1,8 +1,31 @@
+from collections.abc import Iterator
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
 
-from bookmarks_api import operations
+from bookmarks_api.database import get_db
+from bookmarks_api.db_models import Base, BookmarkORM
 from bookmarks_api.main import app
+
+TEST_DATABASE_URL = (
+    "postgresql://bookmarks_user:bookmarks_password@localhost:5432/bookmarks_test_db"
+)
+
+test_engine = create_engine(TEST_DATABASE_URL)
+TestSessionLocal = sessionmaker(bind=test_engine)
+
+
+def get_test_db() -> Iterator[Session]:
+    session = TestSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+app.dependency_overrides[get_db] = get_test_db
 
 client = TestClient(app)
 
@@ -99,5 +122,9 @@ def test_delete_bookmark_not_exist() -> None:
 
 @pytest.fixture(autouse=True)
 def reset_database() -> None:
-    operations.database_db.clear()
-    operations.next_id = 1
+    Base.metadata.create_all(bind=test_engine)
+    session = TestSessionLocal()
+    session.query(BookmarkORM).delete()
+    session.execute(text("ALTER SEQUENCE bookmarks_id_seq RESTART WITH 1"))
+    session.commit()
+    session.close()
